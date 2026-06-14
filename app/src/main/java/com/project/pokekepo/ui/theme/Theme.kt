@@ -19,8 +19,11 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = PokemonBlue,
     background = PokemonDark,
     onBackground = Color.White,
-    surface = PokemonDark,
+    surface = Color(0xFF252540),
     onSurface = Color.White,
+    surfaceVariant = Color(0xFF323256),
+    onSurfaceVariant = Color(0xFFB0B0C8),
+    outline = Color(0xFF3D3D5C),
 )
 
 private val LightColorScheme = lightColorScheme(

@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -40,18 +42,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.project.pokekepo.core.util.AuthField
 import com.project.pokekepo.ui.theme.PokemonYellow
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-private fun authTextFieldColors() = OutlinedTextFieldDefaults.colors(
+private fun authTextFieldColors(isError: Boolean = false) = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.Black,
     unfocusedTextColor = Color.Black,
-    focusedLabelColor = Color.Black,
-    unfocusedLabelColor = Color.Black,
+    focusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.Black,
+    unfocusedLabelColor = if (isError) MaterialTheme.colorScheme.error else Color.Black,
     cursorColor = Color.Black,
-    focusedBorderColor = PokemonYellow,
-    unfocusedBorderColor = Color(0xFFBDBDBD),
+    focusedBorderColor = if (isError) MaterialTheme.colorScheme.error else PokemonYellow,
+    unfocusedBorderColor = if (isError) MaterialTheme.colorScheme.error else Color(0xFFBDBDBD),
+    errorBorderColor = MaterialTheme.colorScheme.error,
+    errorLabelColor = MaterialTheme.colorScheme.error,
+    errorCursorColor = MaterialTheme.colorScheme.error,
 )
 
 /**
@@ -96,26 +102,39 @@ fun LoginScreen(
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
         )
 
+        val emailError = uiState.fieldErrors[AuthField.EMAIL]
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                viewModel.clearFieldError(AuthField.EMAIL)
+            },
             label = { Text("Email", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
+            isError = emailError != null,
+            supportingText = emailError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = emailError != null),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next,
             ),
         )
         Spacer(modifier = Modifier.height(12.dp))
+
+        val passwordError = uiState.fieldErrors[AuthField.PASSWORD]
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                viewModel.clearFieldError(AuthField.PASSWORD)
+            },
             label = { Text("Kata Sandi", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
+            isError = passwordError != null,
+            supportingText = passwordError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = passwordError != null),
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -157,7 +176,7 @@ fun LoginScreen(
     }
 }
 
-/** Layar registrasi akun baru — validasi konfirmasi password di ViewModel. */
+/** Layar registrasi akun baru dengan validasi per field. */
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
@@ -181,6 +200,7 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -192,45 +212,85 @@ fun RegisterScreen(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
+        val nameError = uiState.fieldErrors[AuthField.NAME]
         OutlinedTextField(
             value = name,
-            onValueChange = { name = it },
+            onValueChange = {
+                name = it
+                viewModel.clearFieldError(AuthField.NAME)
+            },
             label = { Text("Nama", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
+            isError = nameError != null,
+            supportingText = nameError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = nameError != null),
         )
         Spacer(modifier = Modifier.height(12.dp))
+
+        val emailError = uiState.fieldErrors[AuthField.EMAIL]
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                viewModel.clearFieldError(AuthField.EMAIL)
+            },
             label = { Text("Email", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            isError = emailError != null,
+            supportingText = emailError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = emailError != null),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next,
+            ),
         )
         Spacer(modifier = Modifier.height(12.dp))
+
+        val passwordError = uiState.fieldErrors[AuthField.PASSWORD]
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                viewModel.clearFieldError(AuthField.PASSWORD)
+                if (confirm.isNotEmpty()) viewModel.clearFieldError(AuthField.CONFIRM_PASSWORD)
+            },
             label = { Text("Kata Sandi", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
+            isError = passwordError != null,
+            supportingText = passwordError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = passwordError != null),
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next,
+            ),
         )
         Spacer(modifier = Modifier.height(12.dp))
+
+        val confirmError = uiState.fieldErrors[AuthField.CONFIRM_PASSWORD]
         OutlinedTextField(
             value = confirm,
-            onValueChange = { confirm = it },
+            onValueChange = {
+                confirm = it
+                viewModel.clearFieldError(AuthField.CONFIRM_PASSWORD)
+            },
             label = { Text("Konfirmasi Kata Sandi", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            colors = authTextFieldColors(),
+            isError = confirmError != null,
+            supportingText = confirmError?.let { { Text(it) } },
+            colors = authTextFieldColors(isError = confirmError != null),
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done,
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = { viewModel.register(name, email, password, confirm) },
+            ),
         )
 
         uiState.errorMessage?.let { message ->

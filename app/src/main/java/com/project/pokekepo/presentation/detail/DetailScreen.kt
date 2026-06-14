@@ -1,7 +1,6 @@
 package com.project.pokekepo.presentation.detail
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -46,6 +45,7 @@ import org.koin.androidx.compose.koinViewModel
  *
  * Section: gambar official artwork, tipe, info fisik, kemampuan, statistik.
  * Data di-load via [DetailViewModel.loadDetail] saat [pokemonName] berubah.
+ * Saat loading, tampil [DetailShimmer] (skeleton top-aligned) sebelum [DetailContent].
  */
 @OptIn(ExperimentalGlideComposeApi::class, ExperimentalLayoutApi::class)
 @Composable
@@ -61,13 +61,9 @@ fun DetailScreen(
     }
 
     when {
+        // Skeleton shimmer — posisi sama dengan DetailContent (bukan centered)
         uiState.isLoading -> {
-            Box(
-                modifier = modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center,
-            ) {
-                DetailShimmer()
-            }
+            DetailShimmer(modifier = modifier.fillMaxSize())
         }
         uiState.detail != null -> {
             DetailContent(
